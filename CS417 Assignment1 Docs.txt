@@ -1,0 +1,121 @@
+Andrew Yoon and Gabe Raybould
+CS 417 Distributed Systems Assignment 1
+
+This project was implemented in golang with use Google Protocol Buffers and Rest protocol.
+
+Code files :
+	main/client.go
+	main/placeServer.go
+	main/airportServer.go
+	airportdata/airports.go
+	placedata/places.go
+
+Compilation and Information: 
+
+	On three different terminals, you need to run airportServer.go, placeServer.go, and client.go.
+
+	-go run airportServer.go
+	-go run placeServer.go
+	-go run client.go {state} {place}
+		ex: -go run client.go nj princeton
+		    -go run client.go ak anchorage
+
+	placeServer.go listens to port 8080.
+	airportServer.go listens to port 8081.
+
+	Client.go takes in two parameters for state and place and checks if there are a indeed 2 inputs. 
+		Please supply corrected formated state and place names
+	Client.go then calls placeServer.go via an HTTP Get at the URL: "http://localhost:8080/getAllPlaces/" + state + "/" + town.
+		ex:) "http://localhost:8080/getAllPlaces/nj/princeton"
+	PlaceServer.go calls GetPlaceList() function at places.go. Places.go unmarshalls the list and send data back to PlaceServer.go. 
+	PlaceServer.go find the given state and town by matching the state exactly (state is converted to all uppercases) and uses string.HasPrefix() to match the town.
+	PlaceServer.go returns the data for the place that is found to Client.
+
+	Client then calls airportServer.go via an HTTP Get at URL: "http://localhost:8081/getClosestAirports/{latitude}/{longitude}".
+		example: "http://localhost:8081/getClosestAirports/40.361506/-74.651988"
+	Using these coordinates, airportServer calls airport.go's GetClosestAirports method and recieves the five closest airports to the given place.
+
+	Client then prints out the information to the client terminal.
+
+
+Storage and Searching of Data:
+
+	In both placeServer and airportServer, we use Golang's implementation of maps to store and search for data.
+
+	The protocol buffers return lists for both the places.proto and airport.proto. We iterate the lists and save as a map and send the maps back to the servers.
+
+	PLACE's are stored in maps of place object slices where the key is the state. So, if you search the map for the key "NJ" you will get a slice containing all the airports
+	in New Jersey. You then iterate through that slice to get the place you were looking for. 
+
+	AIRPORT's are also stored in maps where the key is the unique airport code and the value is a pointer to an airport struct. In airport server, in order to search the 5 closest
+	airports, we created a new struct with the airport code and a distance field. We iterate through the airportMap and populate a slice of these structs that contain every single
+	airports airport code and distances. We then use sort.Sort() on this slice and sort based on distance from smallest to largest. Then we take the first 5 elements and pass back
+	to the client.
+
+Bugs and Peculiarities
+
+	If you enter a two word place such as "New Brunswick" or "Los Angeles" please surround with quotes.
+
+Test Cases :
+
+C:\Users\Andrew Yoon\Documents\GoWork\src>go run client.go nj princeton
+Place that was inputed was :
+state:"NJ" name:"Princeton North CDP" lat:40.361506 lon:-74.651988
+
+5 Closest Airports are :
+state:"NJ" name:"Trenton" code:"TTN" lat:40.28 lon:-74.82  DISTANCE:  10.483365416398824  miles
+state:"NJ" name:"Mcguire AFB" code:"WRI" lat:40.02 lon:-74.6  DISTANCE:  23.73878624780487  miles
+state:"PA" name:"North Philadelphia" code:"PNE" lat:40.08 lon:-75.02  DISTANCE:  27.463435418742655  miles
+state:"NJ" name:"Lakehurst" code:"NEL" lat:40.03 lon:-74.35  DISTANCE:  27.885417249791054  miles
+state:"PA" name:"Willow Grove" code:"NXX" lat:40.2 lon:-75.15  DISTANCE:  28.504474137186637  miles
+
+
+C:\Users\Andrew Yoon\Documents\GoWork\src>go run client.go nj paramus
+Place that was inputed was :
+state:"NJ" name:"Paramus borough" lat:40.947107 lon:-74.070471
+
+5 Closest Airports are :
+state:"NJ" name:"Teterboro" code:"TEB" lat:40.85 lon:-74.05  DISTANCE:  6.789511172698556  miles
+state:"NJ" name:"Fairfield" code:"CDW" lat:40.87 lon:-74.28  DISTANCE:  12.16106509696547  miles
+state:"NY" name:"New York/La Guardia" code:"LGA" lat:40.77 lon:-73.9  DISTANCE:  15.125851756894221  miles
+state:"NJ" name:"Newark Liberty International" code:"EWR" lat:40.7 lon:-74.17  DISTANCE:  17.836848463316098  miles
+state:"NY" name:"White Plains" code:"HPN" lat:41.07 lon:-73.72  DISTANCE:  20.13593775190761  miles
+
+
+C:\Users\Andrew Yoon\Documents\GoWork\src>go run client.go AK anchorage
+Place that was inputed was :
+state:"AK" name:"Anchorage municipality" lat:61.1919 lon:-149.762097
+
+5 Closest Airports are :
+state:"AK" name:"Anchorage" code:"MRI" lat:61.22 lon:-149.8  DISTANCE:  2.313744859213243  miles
+state:"AK" name:"Anchorage" code:"ANC" lat:61.17 lon:-150  DISTANCE:  8.061364321799527  miles
+state:"AK" name:"Palmer" code:"PAQ" lat:61.6 lon:-149  DISTANCE:  37.796934725680345  miles
+state:"AK" name:"Kenai" code:"ENA" lat:60.57 lon:-151.2  DISTANCE:  64.63521797046607  miles
+state:"AK" name:"Skwentna" code:"SKW" lat:61.97 lon:-151.2  DISTANCE:  71.54378472825286  miles
+
+
+C:\Users\Andrew Yoon\Documents\GoWork\src>go run client.go nj "New Brunswick"
+Place that was inputed was :
+state:"NJ" name:"New Brunswick city" lat:40.488304 lon:-74.447751
+
+5 Closest Airports are :
+state:"NJ" name:"Newark Liberty International" code:"EWR" lat:40.7 lon:-74.17  DISTANCE:  20.632933965389515  miles
+state:"NJ" name:"Morristown" code:"MMU" lat:40.8 lon:-74.42  DISTANCE:  21.570652650289727  miles
+state:"NJ" name:"Trenton" code:"TTN" lat:40.28 lon:-74.82  DISTANCE:  24.293273856039374  miles
+state:"NJ" name:"Fairfield" code:"CDW" lat:40.87 lon:-74.28  DISTANCE:  27.780144437744664  miles
+state:"NJ" name:"Lakehurst" code:"NEL" lat:40.03 lon:-74.35  DISTANCE:  32.06083882441739  miles
+
+
+C:\Users\Andrew Yoon\Documents\GoWork\src>go run client.go ca "Los Angeles"
+Place that was inputed was :
+state:"CA" name:"Los Angeles city" lat:34.086159 lon:-118.375984
+
+5 Closest Airports are :
+state:"CA" name:"Santa Monica" code:"SMO" lat:34.02 lon:-118.4  DISTANCE:  4.770193171265723  miles
+state:"CA" name:"Burbank" code:"BUR" lat:34.2 lon:-118.3  DISTANCE:  8.97995071080632  miles
+state:"CA" name:"Van Nuys" code:"VNY" lat:34.22 lon:-118.4  DISTANCE:  9.342615878281599  miles
+state:"CA" name:"Los Angeles" code:"LAX" lat:33.93 lon:-118.4  DISTANCE:  10.869542386802392  miles
+state:"CA" name:"Hawthorne" code:"HHR" lat:33.92 lon:-118.3  DISTANCE:  12.269497531708701  miles
+
+
+
