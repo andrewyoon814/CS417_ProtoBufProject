@@ -1,5 +1,7 @@
-Andrew Yoon
-CS 417 Distributed Systems Assignment 1
+
+#CS 417 Distributed Systems Assignment 1
+
+All use of this code must be consistent with the [DCS Academic Integrity Policy.] (https://www.cs.rutgers.edu/academic-integrity/introduction)
 
 This project was implemented in golang with use Google Protocol Buffers and Rest protocol.
 The purpose was for us to familiarize ourselves with Go, serialization with Google Protocol Buffers, and RPC.
