@@ -1,4 +1,4 @@
-Andrew Yoon and Gabe Raybould
+Andrew Yoon
 CS 417 Distributed Systems Assignment 1
 
 This project was implemented in golang with use Google Protocol Buffers and Rest protocol.
