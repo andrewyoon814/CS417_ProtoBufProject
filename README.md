@@ -42,6 +42,10 @@ Compilation and Information:
 
 Storage and Searching of Data:
 
+	Both large lists of various airpors and places are serialized in the places-proto.bin and airport-proto.bin.
+	Airports.go and Places.go are the 2 files that actually do the the unmarshalling. AirportServer.go and PlaceServer.go simiply 
+	get the information that has been unserialized, perform the query and sends back to the client.
+
 	In both placeServer and airportServer, we use Golang's implementation of maps to store and search for data.
 
 	The protocol buffers return lists for both the places.proto and airport.proto. We iterate the lists and save as a map and send the maps back to the servers.
